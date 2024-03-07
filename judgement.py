@@ -54,14 +54,15 @@ def playRound(players, orderedPlayers, graveyard, trumpSuit, potentialWins, winC
         players[currentPlayer] = player
 
     for x in currentPile : graveyard.append(x)
-    print(f"current pile:{currentPile}")
-    print(f"graveyard:{graveyard}")
+    #print(f"current pile:{currentPile}")
+    #print(f"graveyard:{graveyard}")
     winningPlayer = roundWinner(currentPile, orderedPlayers, trumpSuit)
 
     return graveyard, winningPlayer
 
 def playCard(player, currentPile, cardToPlay):
 
+    #print(f"Card to Play:{cardToPlay}")
     player.remove(cardToPlay)
     currentPile.append(cardToPlay)
 
@@ -103,7 +104,7 @@ def roundWinner(currentPile, orderedPlayers, trumpSuit):
     
     index = currentPile.index(bestCard)
     winningPlayer = orderedPlayers[index]
-    print(f"Winning Player: {winningPlayer}, Card Played: {bestCard}")
+    #print(f"Winning Player: {winningPlayer}, Card Played: {bestCard}")
     return winningPlayer
 
 def orderPlayers(winningPlayer):
@@ -182,6 +183,8 @@ def getBestCard(graveyard, player, currentPile, trumpsuit, potentialWins, winCou
             currentPileFiltered = [x for x in currentPile if x[0] == roundSuit]
             currentPileFiltered.sort(key=lambda c:cardOrder.index(c[1:]))
 
+            currentLowestCard = roundSuitCards[0]
+
             for currentPileCard in currentPileFiltered:
                 for roundSuitCard in roundSuitCards:
                     if roundSuitCard[1:] < currentPileCard[1:]:
@@ -189,7 +192,7 @@ def getBestCard(graveyard, player, currentPile, trumpsuit, potentialWins, winCou
 
             cardToPlay = currentLowestCard
 
-        elif not roundSuitCards and trumpsuit in currentPile and roundTrumpCards and currentPile:
+        elif trumpsuit in currentPile and roundTrumpCards and currentPile:
             # if there is a trump suit in the current pile, play a your highest lower trump
             roundTrumpCards.sort(key=lambda c:cardOrder.index(c[1:]))
 
@@ -197,34 +200,50 @@ def getBestCard(graveyard, player, currentPile, trumpsuit, potentialWins, winCou
             trumpsInPile.sort(key=lambda c:cardOrder.index(c[1:]))
 
             for highestTrump in trumpsInPile:
-                '''TO DO'''
-                pass
+                for trumpCard in roundTrumpCards:
+                    if trumpCard[1:] < highestTrump[1:]:
+                        currentLowestCard = trumpCard
+                    
+            if not currentLowestCard:
+                player.sort(key=lambda c:cardOrder.index(c[1:]))
+                currentLowestCard = player[-1]
 
-        elif not roundSuitCards and not roundTrumpCards:
-            '''TO DO '''
+            cardToPlay = currentLowestCard
+
+        elif not roundTrumpCards:
+            # dont have 
+            player.sort(key=lambda c:cardOrder.index(c[1:]))
+            currentBestCard = player[-1]
+            cardToPlay = currentBestCard
+
         else:
             # if starting the round, play lowest card in hand
             worstSuitCards = []
             hCards = [x for x in player if x[0] == 'H']
-            hCards.sort(key=lambda c:cardOrder.index(c[1:]))
-            worstSuitCards.append(hCards[0])
+            if hCards:
+                hCards.sort(key=lambda c:cardOrder.index(c[1:]))
+                worstSuitCards.append(hCards[0])
+
             sCards = [x for x in player if x[0] == 'S']
-            sCards.sort(key=lambda c:cardOrder.index(c[1:]))
-            worstSuitCards.append(sCards[0])
+            if sCards:
+                sCards.sort(key=lambda c:cardOrder.index(c[1:]))
+                worstSuitCards.append(sCards[0])
+
             dCards = [x for x in player if x[0] == 'D']
-            dCards.sort(key=lambda c:cardOrder.index(c[1:]))
-            worstSuitCards.append(dCards[0])
+            if dCards:
+                dCards.sort(key=lambda c:cardOrder.index(c[1:]))
+                worstSuitCards.append(dCards[0])
+
             cCards = [x for x in player if x[0] == 'C']
-            cCards.sort(key=lambda c:cardOrder.index(c[1:]))
-            worstSuitCards.append(cCards[0])
+            if cCards:
+                cCards.sort(key=lambda c:cardOrder.index(c[1:]))
+                worstSuitCards.append(cCards[0])
 
             currentLowestCard = random.choice(worstSuitCards)
-
-        cardToPlay = currentLowestCard
+            cardToPlay = currentLowestCard
 
     else:
    
-
         if not roundSuit:
             # Find best card in hand and see if its larger than highest unknown card
             
@@ -359,15 +378,18 @@ def getBestCard(graveyard, player, currentPile, trumpsuit, potentialWins, winCou
 
 def calculatePotentialRoundWins(player, trumpSuit, currentTotal):
     potentialWins = 0
+    countTrump = 0
     for card in player:
-        if '13' in card or '14' in card or card[0] == trumpSuit:
+        if '13' in card or '14' in card or card[0] in trumpSuit:
             potentialWins += 1
+            if card[0] == trumpSuit:
+                countTrump += 1
     
     if potentialWins > 0 :
         potentialWins -= 1
 
     if currentTotal + potentialWins == 10:
-        if potentialWins == 0:
+        if currentTotal < 10:
             potentialWins += 1
         else:
             potentialWins -= 1
@@ -401,17 +423,17 @@ def main():
         potentialWinsP4, currentTotal = calculatePotentialRoundWins(players['P4'],trumpSuit, currentTotal)
 
         potentialWins = {"P1":potentialWinsP1,"P2":potentialWinsP2, "P3":potentialWinsP3, "P4":potentialWinsP4}
-
-    '''
+        print(f"Potential Wins:{potentialWins}")
+    
         for x in range(10):
             print(f"Round: {x+1}")
             graveyard, winningPlayer = playRound(players,orderedPlayers, graveyard, trump, potentialWins, winCount)
             orderedPlayers = orderPlayers(winningPlayer)
             winCount = countWins(winningPlayer, winCount)
-            #print(f"Round Winner: {winningPlayer}")
+            print(f"Round Winner: {winningPlayer}")
     
         print(f"Wins: {winCount}")
-    '''
+    
 
 if __name__ == "__main__":
     main()
